@@ -10,7 +10,7 @@ from flask_cors import CORS
 class MyVanna(ChromaDB_VectorStore, Mistral):
     def __init__(self, config=None):
         ChromaDB_VectorStore.__init__(self, config=config)
-        Mistral.__init__(self, config={'api_key': '7ptznnGXYprzVuWDV2HSz1CLLjanMMQH', 'model': 'mistral-small-latest'})
+        Mistral.__init__(self, config={'api_key': 'mistral_api_key', 'model': 'mistral-small-latest'})
 
 # Instantiate MyVanna and connect to PostgreSQL
 vn = MyVanna()
