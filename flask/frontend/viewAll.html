@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NMSDC Lead Details</title>
+    <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-grid.css">
+    <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-width: 150px;
+            height: auto;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin: 0;
+        }
+        .lead-id {
+            font-size: 18px;
+            color: #34495e;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+        }
+        #myGrid {
+            height: 600px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .export-button {
+            margin: 10px 0;
+        }
+        .export-button button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .export-button button:hover {
+            background-color: #2980b9;
+        }
+        .sql-response {
+            font-family: 'Courier New', Courier, monospace; /* Code-like font */
+            font-weight: bold; /* Bold text */
+            background-color: #f4f4f4; /* Optional: light background */
+            padding: 5px; /* Optional: padding for better readability */
+            border-radius: 3px; /* Optional: rounded corners */
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://b3336080.smushcdn.com/3336080/wp-content/uploads/2023/10/logo.png" alt="NMSDC Logo" class="logo">
+            <h1>NMSDC Lead Details</h1>
+        </div>
+        <div class="lead-id">ID: {{ id }}</div>
+        <div class="export-button"></div>
+        <div id="myGrid" class="ag-theme-alpine"></div>
+    </div>
+
+    <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.noStyle.js"></script>
+    <script>
+        async function fetchData(id) {
+            try {
+                const response = await fetch(`http://localhost:8084/api/v0/get_json?id=${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+
+                const result = await response.json(); // Get the JSON response
+                const jsonData = result.data; // Extract 'data' from the JSON
+
+                const gridOptions = {
+                    columnDefs: Object.keys(jsonData[0])
+                        .filter(key => key.trim() !== '')
+                        .map(key => ({
+                            headerName: key,
+                            field: key,
+                            filter: true,
+                            sortable: true,
+                            resizable: true
+                        })),
+                    rowData: jsonData,
+                    pagination: true,
+                    paginationPageSize: 10,
+                    domLayout: 'normal',
+                    defaultColDef: {
+                        flex: 1,
+                        minWidth: 100,
+                    },
+                    enableExport: true,
+                    sideBar: {
+                        toolPanels: [
+                            {
+                                id: 'columns',
+                                labelDefault: 'Columns',
+                                labelKey: 'columns',
+                                iconKey: 'columns',
+                                toolPanel: 'agColumnsToolPanel',
+                            },
+                            {
+                                id: 'filters',
+                                labelDefault: 'Filters',
+                                labelKey: 'filters',
+                                iconKey: 'filter',
+                                toolPanel: 'agFiltersToolPanel',
+                            }
+                        ],
+                        defaultToolPanel: 'filters'
+                    }
+                };
+
+                new agGrid.Grid(document.getElementById('myGrid'), gridOptions);
+
+                // Add custom export button
+                const exportButton = document.querySelector('.export-button');
+                const eButton = document.createElement('button');
+                eButton.innerHTML = 'Export to CSV';
+                eButton.addEventListener('click', () => gridOptions.api.exportDataAsCsv());
+                exportButton.appendChild(eButton);
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const id = "{{ id }}";
+            if (id) {
+                fetchData(id);
+            } else {
+                console.error('No ID provided');
+            }
+        });
+    </script>
+</body>
+</html>

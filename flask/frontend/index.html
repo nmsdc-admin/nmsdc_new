@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern AI Chatbot</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+    
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    
+        .main-container {
+            display: flex;
+            height: 90vh;
+            width: 90vw;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+    
+/* Mobile menu button - initially hidden */
+.mobile-menu-button {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    padding: 10px 15px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Overlay for mobile - initially hidden */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+}
+
+/* Your existing sidebar styles remain the same */
+.sidebar {
+    flex: 0.2;
+    background-color: #f8f9fa;
+    border-right: 1px solid #e0e0e0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+.sidebar-header {
+            display: flex;
+            align-items: center;
+        }
+.sidebar-header img {
+        width: 80px;
+        height: 70px;
+    }
+/* Add media queries for responsiveness */
+@media (max-width: 768px) {
+    .mobile-menu-button {
+        display: block;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        bottom: 0;
+        width: 80%; /* Take up 80% of screen width on mobile */
+        max-width: 300px;
+        z-index: 999;
+        transition: left 0.3s ease;
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    .button-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .docs-button, .training-button {
+        width: 100%; /* Full width on mobile */
+    }
+
+    /* Adjust header for mobile */
+    .sidebar-header img {
+        width: 80px;
+        height: 70px;
+    }
+
+    .chat-section {
+        flex-grow: 1; /* Ensure chat section takes full width */
+        margin-left: 0;
+        box-sizing: border-box;
+        max-width: 100%; /* Ensure it doesn't overflow */
+    }
+}
+
+/* Add a medium breakpoint for tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .sidebar {
+        flex: 0.3;
+    }
+
+    .sidebar-header img {
+        width: 100px;
+        height: 85px;
+    }
+}
+    
+        .sidebar-header h2 {
+            font-size: 1rem;
+            color: #333;
+            text-align: bottom;
+        }
+    
+        .history-section {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+    
+        .history-section h3 {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+    
+        #history-list {
+            list-style-type: none;
+        }
+    
+        #history-list li {
+            padding: 10px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 0.9rem;
+            color: #333;
+        }
+    
+        #history-list li:hover {
+            background-color: #e9ecef;
+        }
+    
+        .button-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.docs-button, .training-button {
+    width: 48%; /* Each button takes up half the width with some space between */
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.docs-button:hover, .training-button:hover {
+    background-color: #0056b3;
+}
+
+.logout-button {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.logout-button:hover {
+    background-color: #c82333;
+}
+    
+        .chat-section {
+            flex: 0.8; /* Increased from 0.7 */
+            display: flex;
+            flex-direction: column;
+            width: max-content;
+        }
+    
+        .chat-header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    
+        .chat-header h1 {
+            font-size: 1.8rem;
+            margin-left: 15px;
+        }
+    
+        .chat-window {
+            padding: 20px;
+            height: calc(100% - 140px);
+            overflow-y: auto;
+            flex: 1;
+            background-color: #ffffff;
+        }
+    
+        .chat-message {
+            margin: 20px 0;
+            display: flex;
+            align-items: flex-start;
+        }
+    
+        .message-content {
+            max-width: 90%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+        }
+    
+        .user-message {
+            flex-direction: row-reverse;
+        }
+    
+        .bot-message {
+            flex-direction: row;
+        }
+    
+        .user-message .message-content {
+            background-color: #007bff;
+            color: white;
+            margin-right: 10px;
+        }
+    
+        .bot-message .message-content {
+            background-color: #f1f3f5;
+            color: #333;
+            margin-left: 10px;
+        }
+    
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    
+        .message-time {
+            font-size: 0.75rem;
+            color: #999;
+            position: absolute;
+            bottom: -20px;
+            white-space: nowrap;
+        }
+    
+        .user-message .message-time {
+            right: 0;
+        }
+    
+        .bot-message .message-time {
+            left: 0;
+        }
+    
+        .chat-input {
+            padding: 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #e0e0e0;
+        }
+    
+        .chat-input input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+    
+        .chat-input input:focus {
+            border-color: #007bff;
+        }
+    
+        .chat-input button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            height: 40px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    
+        .chat-input button:hover {
+            background-color: #0056b3;
+        }
+    
+        .chat-input button i {
+            font-size: 1.2rem;
+        }
+    
+        .thinking {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+            color: #666;
+        }
+    
+        .thinking-dots {
+            display: flex;
+            margin-left: 5px;
+        }
+    
+        .thinking-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #666;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: thinking 1.4s infinite ease-in-out both;
+        }
+    
+        .thinking-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+    
+        .thinking-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+    
+        @keyframes thinking {
+            0%, 80%, 100% { 
+                transform: scale(0);
+            } 40% { 
+                transform: scale(1.0);
+            }
+        }
+    
+/* Add global styles for the table */
+.table-container .message-content {
+    margin: 10px 0;
+    display: inline-block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto; /* Make it responsive */
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for modern look */
+    border: 1px solid #e5e5e5; /* Add border to the table */
+    max-width: 1200px; /* Set a fixed maximum width */
+    overflow-x: auto; /* Enable horizontal scrolling */
+
+}
+table {
+        width: 100%; /* Fixed width for the table */
+        border-spacing: 0;
+        border-radius: 12px; /* Rounded corners */
+        overflow: hidden; /* Ensures the corners apply to all table parts */
+        font-size: 12px; /* Reduced font size */
+    }
+
+thead {
+    background: linear-gradient(to right, #007bff, #0056b3); /* Gradient background for the header */
+    text-align: left;
+    font-weight: bold;
+    border-radius: 12px 12px 0 0; /* Rounded corners for the top of the table */
+}
+
+th, td {
+    padding: 5px 10px;
+    text-align: left;
+}
+
+th {
+    background-color: transparent; /* Transparent background for the header */
+    color: white;
+}
+
+td {
+    background-color: #fff;
+}
+
+tr:nth-child(even) td {
+    background-color: #f9f9f9; /* Striped background for even rows */
+}
+
+tr:last-child td {
+    border-bottom: none; /* Remove the border for the last row */
+}
+
+/* Add hover effects */
+tr:hover td {
+    color: #0056b3; /* Change text color on hover */
+}
+
+/* Table buttons */
+.table-buttons {
+    margin-top: 10px;
+}
+
+.table-buttons button {
+    background-color: #007bff;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    margin-right: 8px;
+    border-radius: 8px; /* Rounded button corners */
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.table-buttons button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Modern button styles */
+.table-buttons button {
+    background-color: #007bff; /* Modern blue color */
+    color: white; /* White text */
+    border: none;
+    font-size: 16px; /* Slightly larger font for better readability */
+    font-weight: 500; /* Semi-bold text */
+    border-radius: 30px; /* Fully rounded buttons */
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth hover transitions */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for modern touch */
+}
+
+.table-buttons button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+    transform: translateY(-3px); /* Slight lift effect on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+}
+
+.table-buttons button:active {
+    background-color: #003d80; /* Even darker on active click */
+    transform: translateY(0); /* Remove lift effect when clicked */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Back to original shadow */
+}
+/* Container for the bot avatar and table */
+.table-message-container {
+    display: flex;
+    align-items: flex-start;
+    margin: 10px 0;
+}
+
+/* Bot icon styling */
+.message-avatar {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    margin-right: 10px; /* Space between avatar and table */
+}
+
+/* Table container styling */
+.table-container {
+    max-width: 900px; /* Set a fixed maximum width */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for modern look */
+}
+
+/* Table styling */
+.table-container table {
+    width: 100%; /* Ensure the table stretches to fit the container width */
+    border-collapse: collapse; /* For a cleaner look */
+}
+
+/* Table header and cell styling */
+.table-container th, .table-container td {
+    padding: 8px 12px; /* Add some padding for table cells */
+    border: 1px solid #ddd; /* Add border to make the table clearer */
+    text-align: left; /* Align text to the left */
+}
+    /* Add thin scrollbar style */
+    .table-container {
+        overflow-x: auto; /* Enable horizontal scrolling */
+        scrollbar-width: thin; /* For Firefox */
+    }
+
+    .table-container::-webkit-scrollbar {
+        height: 6px; /* Height of horizontal scrollbar */
+    }
+
+    .floating-voice-agent {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 1000;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .floating-voice-agent:hover {
+            background-color: #0056b3;
+            transform: scale(1.1);
+        }
+        .floating-voice-agent i {
+            font-size: 24px;
+        }
+        .ask-nila-text {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            color: #000;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #007BFF;
+            opacity: 0;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+        .listening .floating-voice-agent {
+            background-color: #0056b3;
+        }
+        .listening .pulse {
+            background-color: #0056b3;
+        }
+        .wave {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #0056b3;
+            opacity: 0;
+        }
+        .listening .wave:nth-child(2) {
+            animation: wave 2s infinite 0.3s;
+        }
+        .listening .wave:nth-child(3) {
+            animation: wave 2s infinite 0.6s;
+        }
+        @keyframes wave {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(1.3);
+                opacity: 0;
+            }
+        }
+
+
+/* Basic CSS for "Listening" red dot */
+.red-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: red;
+    border-radius: 50%;
+    margin-left: 5px;
+}
+
+/* Animation for speaking */
+.floating-voice-agent.speaking {
+    animation: speaking-animation 1.5s infinite;
+}
+
+/* Keyframes for the speaking animation */
+@keyframes speaking-animation {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Optional styles for pulse and wave animations */
+.pulse, .wave {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0;
+    animation: pulsate 2s infinite;
+}
+
+.pulse {
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 123, 255, 0.6); /* Blue color pulse */
+}
+
+.wave {
+    width: 70px;
+    height: 70px;
+    border: 2px solid rgba(0, 123, 255, 0.6); /* Blue wave */
+}
+
+@keyframes pulsate {
+    0% {
+        transform: scale(0.9);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}  
+/* Reset and base styles with modern defaults */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background: #f6f9fc;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modern container with solid background */
+.main-container {
+    display: flex;
+    height: 90vh;
+    width: 90vw;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+/* Solid sidebar */
+.sidebar {
+    flex: 0.2;
+    background: #f8f9fa;
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Modern buttons with solid colors */
+.docs-button, .training-button {
+    background: #0066ff;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 102, 255, 0.2);
+}
+
+.docs-button:hover, .training-button:hover {
+    transform: translateY(-2px);
+    background: #0052cc;
+}
+
+/* Solid chat messages */
+.message-content {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 14px 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.user-message .message-content {
+    background: #0066ff;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 102, 255, 0.2);
+}
+
+/* Modern chat input */
+.chat-input input {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    padding: 14px 20px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.chat-input input:focus {
+    border-color: #0066ff;
+    box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
+    outline: none;
+}
+
+/* Modern table styles */
+.table-container {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+table {
+    width: 100%;
+    border-spacing: 0;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+thead {
+    background: #0066ff;
+    color: white;
+}
+
+th {
+    padding: 16px;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: background-color 0.2s ease;
+}
+
+tr:hover td {
+    background: #f8f9fa;
+}
+
+/* Floating voice agent with solid design */
+.floating-voice-agent {
+    background: #0066ff;
+    border-radius: 50%;
+    box-shadow: 0 6px 16px rgba(0, 102, 255, 0.25);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.floating-voice-agent:hover {
+    transform: scale(1.05);
+    background: #0052cc;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 768px) {
+    .main-container {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+
+    .sidebar {
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .message-content {
+        max-width: 85%;
+        font-size: 0.95rem;
+    }
+
+    .chat-input input {
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 12px 16px;
+    }
+
+    .table-container {
+        margin: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    th, td {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+
+    .floating-voice-agent {
+        bottom: 16px;
+        right: 16px;
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* Modern scrollbar - simplified for better performance */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #0066ff;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #0052cc;
+}
+</style>
+    
+    
+</head>
+<body>
+    <div class="main-container">
+        <button class="mobile-menu-button" onclick="toggleSidebar()">☰</button>
+        <div class="overlay" onclick="toggleSidebar()"></div>
+        
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <img src="https://b3336080.smushcdn.com/3336080/wp-content/uploads/2023/10/logo.png" alt="AI Assistant Logo">
+                <h2>AI Assistant</h2>
+            </div>
+            <div class="history-section">
+                <h3>Chat History</h3>
+                <ul id="history-list">
+                    <!-- Chat history items -->
+                </ul>
+            </div>
+            <div class="button-group">
+                <button class="docs-button">Docs</button>
+                <button class="training-button">Training Data</button>
+            </div>
+            <button class="logout-button">Logout</button>
+        </div>
+    
+        <div class="chat-section">
+            <div class="chat-header">
+                <img src="https://i.ibb.co/5MM7L7R/New-Project.png" alt="NMSDC Logo" style="width: 80px; height: auto; margin: -30px; padding-right: -30px;" />
+                <h1>NMSDC AI Chatbot</h1>
+            </div>
+            
+            <div class="chat-window" id="chat-window">
+                <div class="chat-message bot-message">
+                    <img src="https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://nmsdc.org/&size=32" alt="Bot Avatar" class="message-avatar">
+                    <div class="message-content">
+                        Hello! How can I assist you today?
+                        <span class="message-time">12:00 PM</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <input type="text" id="user-input" placeholder="Type your message..." autofocus>
+                <button onclick="sendMessage()" style="width: 40px;"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Independent floating voice agent -->
+    <div class="floating-voice-agent" style="
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        text-align: center;
+        cursor: pointer;
+        z-index: 1000;
+        margin-bottom: 40px;
+    ">
+        <button 
+            id="stopButton" 
+            style="
+                position: absolute;
+                top: -25px;
+                right: -25px;
+                width: 25px;
+                height: 25px;
+                border-radius: 50%;
+                display: none;
+                background: rgba(255, 255, 255, 0);
+                border: 1px solid #000000;
+                color: #000000;
+                font-size: 14px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+                z-index: 1001;
+            "
+            onmouseover="this.style.backgroundColor='#f0f0f0'"
+            onmouseout="this.style.backgroundColor='rgba(255, 255, 255, 0)'"
+        >
+            X
+        </button>
+        <img 
+            src="https://i.ibb.co/rxtxZR5/image-removebg-preview-4-2.png" 
+            alt="Mic Button" 
+            style="width: 50px; height: 50px;" 
+            onclick="playRandomAudioAndStartListening()"
+        >
+        <div class="ask-nila-text" id="nilaText">ask NILA</div>
+    </div>   <script>
+ !function(window){
+    const host = "https://labs.heygen.com",
+          url = host + "/guest/streaming-embed?share=eyJxdWFsaXR5IjoiaGlnaCIsImF2YXRhck5hbWUiOiJXYXluZV8yMDI0MDcxMSIsInByZXZpZXdJ%0D%0AbWciOiJodHRwczovL2ZpbGVzMi5oZXlnZW4uYWkvYXZhdGFyL3YzL2EzZmRiMGM2NTIwMjRmNzk5%0D%0AODRhYWVjMTFlYmYyNjk0XzM0MzUwL3ByZXZpZXdfdGFyZ2V0LndlYnAiLCJuZWVkUmVtb3ZlQmFj%0D%0Aa2dyb3VuZCI6ZmFsc2UsImtub3dsZWRnZUJhc2VJZCI6ImRlbW8tMSIsInVzZXJuYW1lIjoiNzUy%0D%0ANjEyZDFkNjJjNGNkYjljZGU5NjQyYzk0ZTc4Y2IifQ%3D%3D&inIFrame=1",
+          clientWidth = document.body.clientWidth,
+          wrapDiv = document.createElement("div");
+          
+    wrapDiv.id = "heygen-streaming-embed";
+    const container = document.createElement("div");
+    container.id = "heygen-streaming-container";
+    
+    const stylesheet = document.createElement("style");
+    stylesheet.innerHTML = `
+      #heygen-streaming-embed {
+        z-index: 9999;
+        position: fixed;
+        left: 40px;
+        bottom: 40px;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.12);
+        transition: all linear 0.1s;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+      }
+      #heygen-streaming-embed.show {
+        opacity: 1;
+        visibility: visible;
+      }
+      #heygen-streaming-embed.expand {
+        ${clientWidth < 540 ? "height: 266px; width: 96%; left: 50%; transform: translateX(-50%);" : "height: 366px; width: calc(366px * 16 / 9);"}
+        border: 0;
+        border-radius: 8px;
+      }
+      #heygen-streaming-container {
+        width: 100%;
+        height: 100%;
+      }
+      #heygen-streaming-container iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+    `;
+    
+    const iframe = document.createElement("iframe");
+    iframe.allowFullscreen = !1;
+    iframe.title = "Streaming Embed";
+    iframe.role = "dialog";
+    iframe.allow = "microphone";
+    iframe.src = url;
+    
+    let visible = !1, initial = !1;
+    
+    // Listen for messages from the iframe
+    window.addEventListener("message", (e) => {
+      // Ensure the message comes from the correct origin
+      if (e.origin === host && e.data && e.data.type === "avatarTalkingMessage") {
+        console.log('Avatar talking message:', e.data.message);
+      }
+    });
+    
+    container.appendChild(iframe);
+    wrapDiv.appendChild(stylesheet);
+    wrapDiv.appendChild(container);
+    document.body.appendChild(wrapDiv);
+  }(globalThis);
+        </script>
+         <script >
+        const baseUrl = "http://localhost:8084/api/v0";
+        function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('active');
+    document.querySelector('.overlay').classList.toggle('active');
+}
+function addMessageToChat(sender, message) {
+    const chatWindow = document.getElementById("chat-window");
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("chat-message");
+
+    const avatar = document.createElement("img");
+    avatar.classList.add("message-avatar");
+    avatar.alt = sender === "user" ? "User Avatar" : "Bot Avatar";
+    avatar.src = sender === "user" 
+        ? "https://cdn.icon-icons.com/icons2/1378/PNG/512/avatardefault_92824.png" 
+        : "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://nmsdc.org/&size=32";
+
+    const messageContent = document.createElement("div");
+    messageContent.classList.add("message-content");
+
+    if (sender === "user") {
+        messageDiv.classList.add("user-message");
+        messageContent.textContent = message;
+    } else {
+        messageDiv.classList.add("bot-message");
+
+        if (message.toLowerCase().includes("sql") || message.includes("SELECT") || message.includes("FROM")) {
+            messageContent.innerHTML = `<strong>${message}</strong>`;
+        } else {
+            messageContent.innerHTML = message;
+        }
+
+        // Show the "Start New Conversation" button when the bot replies
+        createNewConversationButton();
+    }
+
+    const timeSpan = document.createElement("span");
+    timeSpan.classList.add("message-time");
+    timeSpan.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    messageContent.appendChild(timeSpan);
+
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(messageContent);
+    chatWindow.appendChild(messageDiv);
+    chatWindow.scrollTop = chatWindow.scrollHeight; 
+}
+
+function createNewConversationButton() {
+    // Check if the button already exists
+    if (document.getElementById("start-new-conversation-btn")) return;
+
+    const button = document.createElement("button");
+    button.id = "start-new-conversation-btn";
+    button.textContent = "Start New Conversation";
+    button.classList.add("start-new-conversation");
+    button.onclick = startNewConversation;
+    // Set the button's HTML to include the text and SVG with margin
+    button.innerHTML = `
+        Start New Conversation
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" style="height: 16px; width: 16px; vertical-align: middle; margin-left: 8px;">
+            <path fill="#f5f5f5" d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/>
+        </svg>
+    `;
+
+    // Optional: Add styling directly to the button
+    button.style.marginRight = "10px"; // Add margin to the right
+    button.style.fontSize = "0.7rem"; // Smaller font size
+    button.style.borderRadius = "8px"; // Rounded corners
+    button.style.padding = "5px 10px"; // Padding for a rectangular shape
+    button.style.border = "1px solid #007BFF"; // Optional border color
+    button.style.backgroundColor = "#007BFF"; // Background color
+    button.style.color = "#FFFFFF"; // Text color
+    button.style.cursor = "pointer"; // Pointer cursor on hover
+    // Append the button to the chat input div
+    const chatInputDiv = document.querySelector(".chat-input");
+    chatInputDiv.insertBefore(button, chatInputDiv.firstChild); // Insert before the input field
+}
+
+
+function startNewConversation() {
+    const chatWindow = document.getElementById("chat-window");
+    chatWindow.innerHTML = ""; // Clear chat window
+    const defaultMessage = "How can I help you?";
+    addMessageToChat("bot", defaultMessage);
+
+    // Reset lastQuestion
+    lastQuestion = ""; // Reset lastQuestion to start fresh
+
+    // Remove the button after starting a new conversation
+    const button = document.getElementById("start-new-conversation-btn");
+    if (button) {
+        button.remove(); // Remove the button
+    }
+}
+
+
+let lastQuestion = "";
+
+async function sendMessage() {
+    const inputField = document.getElementById("user-input");
+    const userMessage = inputField.value.trim();
+
+    if (userMessage === "") return; 
+
+    addMessageToChat("user", userMessage);
+    inputField.value = ""; 
+
+    showThinkingAnimation();
+
+    let combinedQuestion;
+    if (lastQuestion) {
+        combinedQuestion = await generateRewrittenQuestion(lastQuestion, userMessage);
+    } else {
+        combinedQuestion = userMessage; // Initialize combinedQuestion with userMessage if lastQuestion is empty
+    }
+    combinedQuestion = combinedQuestion.replace("Combined question: ", "").trim();
+
+    // Debugging: Check the value of combinedQuestion
+    console.log("Combined Question:", combinedQuestion);
+
+    lastQuestion = combinedQuestion; // Ensure lastQuestion is updated
+
+    removeThinkingAnimation();
+
+    // Add the rewritten question to chat for user visibility (optional)
+    addMessageToChat("bot", `Interpreted question: ${combinedQuestion}`);
+
+    showThinkingAnimation();
+
+    // Pass the rewritten question to getBotResponse
+    const botResponse = await getBotResponse(combinedQuestion);
+
+    removeThinkingAnimation();
+
+    addMessageToChat("bot", botResponse.text);
+
+    // Check if botResponse.id is defined before calling runSqlQuery
+    if (botResponse.id) {
+        await runSqlQuery(botResponse.id);
+    } else {
+        console.error("No ID returned from bot response");
+    }
+}
+
+
+async function generateRewrittenQuestion(lastQuestion, newQuestion) {
+    const apiUrl = `${baseUrl}/generate_rewritten_question`;
+    const params = new URLSearchParams({
+        last_question: lastQuestion,
+        new_question: newQuestion
+    });
+
+    try {
+        const response = await fetch(`${apiUrl}?${params}`, { method: "GET" });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        
+        // Check if the response format is correct
+        if (data && data.question) {
+            return data.question; // Return the question from the response
+        } else {
+            console.warn("Unexpected response format:", data);
+            return `${lastQuestion} ${newQuestion}`; // Fallback to combining questions
+        }
+    } catch (error) {
+        console.error("Error generating rewritten question:", error);
+        return `${lastQuestion} ${newQuestion}`; // Fallback to combining questions
+    }
+}
+
+
+async function getBotResponse(userMessage) {
+    const apiUrl = `${baseUrl}/generate_sql?user=root&question=${encodeURIComponent(userMessage)}`;
+    try {
+        const response = await fetch(apiUrl, { method: "GET" });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json(); 
+        return data; 
+    } catch (error) {
+        console.error("Error fetching response from API:", error);
+        return { text: "Sorry, I couldn't process your request." }; 
+    }
+}
+
+async function runSqlQuery(id) {
+    const apiUrl = `${baseUrl}/run_sql?id=${id}`;
+    try {
+        const response = await fetch(apiUrl, { method: "GET" });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const dataFrame = await response.json(); 
+        console.log("DataFrame received from run_sql API:", dataFrame);
+
+        const tableHtml = generateTableHtml(dataFrame.df, id); 
+        addMessageToChat("bot", tableHtml); 
+    } catch (error) {
+        console.error("Error running SQL query:", error);
+        addMessageToChat("bot", "Error retrieving data for the table."); 
+    }
+}
+
+function generateTableHtml(dataFrame, id) {
+    const parsedData = JSON.parse(dataFrame); 
+    if (!Array.isArray(parsedData) || parsedData.length === 0) {
+        return "<p>No data available.</p>"; 
+    }
+
+    let tableHtml = `
+        <div class="table-container"> <!-- Only use the table-container class here -->
+            <table>
+                <thead><tr>`;
+
+    Object.keys(parsedData[0]).forEach(key => {
+        tableHtml += `<th>${key}</th>`;
+    });
+    tableHtml += '</tr></thead><tbody>';
+
+    const maxRowsToShow = 5; 
+    const rowsToDisplay = parsedData.slice(0, maxRowsToShow);
+
+    rowsToDisplay.forEach(row => {
+        tableHtml += '<tr>';
+        Object.values(row).forEach(value => {
+            tableHtml += `<td>${value}</td>`;
+        });
+        tableHtml += '</tr>';
+    });
+
+    tableHtml += '</tbody></table></div>'; 
+
+    tableHtml += `
+        <div class="table-buttons">
+            <button onclick="viewAllRows('${id}')">View All</button>
+            <button onclick="downloadCSV('${id}')">Download CSV</button>
+        </div>
+    `;
+
+    return tableHtml;
+}
+
+function viewAllRows(id) {
+
+    window.open(`/view_all?id=${id}`, '_blank');
+}
+
+async function downloadCSV(id) {
+    const apiUrl = `${baseUrl}/download_csv?id=${id}`;
+    try {
+        const response = await fetch(apiUrl, { method: "GET", headers: { "accept": "application/json" } });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const contentDisposition = response.headers.get("Content-Disposition");
+        let fileName = "download.csv";
+        if (contentDisposition && contentDisposition.includes("filename=")) {
+            fileName = contentDisposition.split("filename=")[1].replace(/"/g, "");
+        }
+
+        const blob = await response.blob();
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName; 
+        document.body.appendChild(link); 
+        link.click(); 
+        document.body.removeChild(link); 
+
+    } catch (error) {
+        console.error("Error downloading CSV:", error);
+        alert("Failed to download CSV. Please try again.");
+    }
+}
+
+async function fetchConversationHistory() {
+    const apiUrl = `${baseUrl}/get_question_history`;
+    try {
+        const response = await fetch(apiUrl, { method: "GET" });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const historyData = await response.json();
+        populateHistoryList(historyData.questions);
+    } catch (error) {
+        console.error("Error fetching conversation history:", error);
+        alert("Failed to fetch conversation history.");
+    }
+}
+
+function populateHistoryList(questions) {
+    const historyList = document.getElementById("history-list");
+    historyList.innerHTML = ""; 
+
+    questions.forEach((question) => {
+        const listItem = document.createElement("li");
+        listItem.innerHTML = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="chat-icon" width="10" height="10">
+    <path d="M160 368c26.5 0 48 21.5 48 48l0 16 72.5-54.4c8.3-6.2 18.4-9.6 28.8-9.6L448 368c8.8 0 16-7.2 16-16l0-288c0-8.8-7.2-16-16-16L64 48c-8.8 0-16 7.2-16 16l0 288c0 8.8 7.2 16 16 16l96 0zm48 124l-.2 .2-5.1 3.8-17.1 12.8c-4.8 3.6-11.3 4.2-16.8 1.5s-8.8-8.2-8.8-14.3l0-21.3 0-6.4 0-.3 0-4 0-48-48 0-48 0c-35.3 0-64-28.7-64-64L0 64C0 28.7 28.7 0 64 0L448 0c35.3 0 64 28.7 64 64l0 288c0 35.3-28.7 64-64 64l-138.7 0L208 492z"/>
+  </svg> 
+  ${question.question}`;
+
+        listItem.onclick = () => loadConversation(question.id); 
+        historyList.appendChild(listItem);
+    });
+}
+
+async function loadConversation(id) {
+    try {
+        // Fetch data from the new API endpoint
+        const response = await fetch(`http://localhost:8084/api/v0/load_question?id=${id}`);
+        const data = await response.json();
+
+        // Check if the response contains a valid question
+        if (data && data.question) {
+            const inputField = document.getElementById("user-input");
+            inputField.value = data.question; // Set the input field with the question
+            sendMessage(); // Call sendMessage to submit the question
+        } else {
+            console.error('No valid question found for ID:', id);
+        }
+    } catch (error) {
+        console.error('Error fetching question:', error);
+    }
+}
+
+
+
+function displayChatResult(conversation) {
+    const chatWindow = document.getElementById('chat-window');
+    chatWindow.innerHTML = ''; 
+
+    conversation.forEach((message) => {
+        const chatMessage = document.createElement('div');
+        chatMessage.classList.add('chat-message');
+
+        if (message.sender === 'SQL') {
+            chatMessage.innerHTML = `
+              <strong>${message.sender}:</strong> <span class="sql-response">${message.text}</span>
+            `;
+        } else {
+            chatMessage.innerHTML = `
+              <strong>${message.sender}:</strong> ${message.text}
+            `;
+        }
+
+        chatWindow.appendChild(chatMessage);
+    });
+
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function showThinkingAnimation() {
+    const chatWindow = document.getElementById("chat-window");
+    const thinkingDiv = document.createElement("div");
+    thinkingDiv.classList.add("chat-message", "bot-message", "thinking");
+    thinkingDiv.innerHTML = `
+        <img src="https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://nmsdc.org/&size=32" 
+             alt="Bot Avatar" class="message-avatar">
+        <div class="message-content">
+            Thinking
+            <div class="thinking-dots">
+                <div class="thinking-dot"></div>
+                <div class="thinking-dot"></div>
+                <div class="thinking-dot"></div>
+            </div>
+        </div>
+    `;
+    chatWindow.appendChild(thinkingDiv);
+    chatWindow.scrollTop = chatWindow.scrollHeight; 
+}
+
+function removeThinkingAnimation() {
+    const thinkingMessages = document.querySelectorAll(".thinking");
+    thinkingMessages.forEach(message => message.remove());
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    fetchConversationHistory(); 
+
+    const inputField = document.getElementById("user-input");
+    inputField.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+
+    const sendButton = document.getElementById("send-button");
+    sendButton.addEventListener("click", sendMessage);
+});
+
+
+// Initialize SpeechRecognition
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+
+recognition.continuous = false;
+recognition.interimResults = false;
+recognition.lang = 'en-US';
+
+// Array of audio file URLs for initial prompts
+const audioFiles = [
+    'https://od.lk/s/NThfNDcxNjc5MDJf/hiambackagainhowcanihelp.mp3',
+    'https://od.lk/s/NThfNDcxNjc5MDNf/Hiamnmsdcleadexterphowcanihelpyoutoday.mp3',
+    'https://od.lk/s/NThfNDcxNjc5MDFf/Iamlisteningtellmeurprompt.mp3'
+];
+
+// URL of the audio to play after speech recognition stops
+const followUpAudioFile = 'https://od.lk/s/NThfNDcxNjc4OTlf/pleasehavealookatresultucanaskfollowupquestionormodifycurrentquestion.mp3';
+
+// Boolean to track whether an audio is already playing
+let isAudioPlaying = false;
+let shouldContinueListening = true; // Flag to track whether to continue listening
+
+// Function to play a random audio and start speech recognition after audio ends
+function playRandomAudioAndStartListening() {
+    if (isAudioPlaying) {
+        console.log('Audio is already playing. Ignoring additional clicks.');
+        return;
+    }
+
+    console.log('Mic button clicked. Initializing random audio playback...');
+    isAudioPlaying = true; // Set flag to prevent multiple triggers
+    shouldContinueListening = true; // Allow listening to continue
+
+    // Pick a random audio file from the array
+    const randomAudioFile = audioFiles[Math.floor(Math.random() * audioFiles.length)];
+
+    // Create a new audio object with the random file
+    const audio = new Audio(randomAudioFile);
+
+    // Check if audio is loaded properly
+    audio.onloadeddata = function() {
+        console.log('Random audio has loaded successfully:', randomAudioFile);
+    };
+
+    // Error handling for audio loading issues
+    audio.onerror = function(e) {
+        console.error('Error occurred while loading the audio:', e);
+        isAudioPlaying = false; // Reset flag if an error occurs
+    };
+
+    // Show speaking animation when the audio is playing
+    showSpeakingAnimation();
+
+    // Play the audio file
+    audio.play().then(() => {
+        console.log('Audio playback started successfully:', randomAudioFile);
+    }).catch((error) => {
+        console.error('Error while trying to play the audio:', error);
+        isAudioPlaying = false; // Reset flag on error
+        alert("Audio playback failed. Ensure your browser allows autoplay or click to proceed.");
+    });
+
+    // Once the audio finishes, start speech recognition
+    audio.onended = function() {
+        if (shouldContinueListening) { // Only start listening if the flag is true
+            console.log('Audio playback finished. Now starting speech recognition...');
+            showListeningIndicator();
+            recognition.start();
+            console.log('Listening for voice input...');
+        }
+        isAudioPlaying = false; // Reset flag after audio ends
+    };
+}
+
+let hasUserInput = false; // Flag to track if user provided input
+
+// Handle speech recognition result
+recognition.onresult = function(event) {
+    const transcript = event.results[0][0].transcript.trim(); // Trim whitespace
+    console.log('Speech recognition result received:', transcript);
+
+    if (transcript) {
+        hasUserInput = true; // Set flag to true if there's user input
+        document.getElementById('user-input').value = transcript;
+        sendMessage(transcript);
+    } else {
+        hasUserInput = false; // Set flag to false if there's no user input
+        console.log('No speech input detected.');
+    }
+};
+
+// Boolean to track whether the follow-up audio has already been played
+let hasPlayedFollowUpAudio = false;
+
+// Handle speech recognition end event
+recognition.onend = function() {
+    console.log('Speech recognition has stopped listening.');
+    showAskNILAIndicator();
+
+    if (shouldContinueListening) {
+        if (hasUserInput) { // Only play follow-up audio if user provided input
+            if (!hasPlayedFollowUpAudio) { // Play follow-up audio only if it hasn't been played yet
+                console.log('User provided input. Now playing follow-up audio...');
+                const followUpAudio = new Audio(followUpAudioFile);
+                followUpAudio.play().then(() => {
+                    console.log('Follow-up audio playback started successfully.');
+                }).catch((error) => {
+                    console.error('Error while trying to play the follow-up audio:', error);
+                });
+
+                followUpAudio.onended = function() {
+                    console.log('Follow-up audio playback finished. Waiting for 5 seconds before restarting speech recognition...');
+                    setTimeout(() => {
+                        if (shouldContinueListening) {
+                            console.log('Restarting speech recognition after delay...');
+                            showListeningIndicator();
+                            recognition.start();
+                            console.log('Listening for new voice input...');
+                        }
+                    }, 5000); // Wait for 5000 milliseconds (5 seconds)
+                };
+
+                hasPlayedFollowUpAudio = true; // Set flag to true after the follow-up audio plays
+            } else {
+                console.log('Follow-up audio has already been played. Skipping it.');
+                // Wait for 5 seconds and then start listening again
+                setTimeout(() => {
+                    if (shouldContinueListening) {
+                        console.log('Restarting speech recognition after delay...');
+                        showListeningIndicator();
+                        recognition.start();
+                        console.log('Listening for new voice input...');
+                    }
+                }, 5000); // Wait for 5000 milliseconds (5 seconds)
+            }
+        } else {
+            console.log('No user input detected. Not playing follow-up audio.');
+            // Wait for 5 seconds and then start listening again
+            setTimeout(() => {
+                if (shouldContinueListening) {
+                    console.log('Restarting speech recognition after delay...');
+                    showListeningIndicator();
+                    recognition.start();
+                    console.log('Listening for new voice input...');
+                }
+            }, 5000); // Wait for 5000 milliseconds (5 seconds)
+        }
+    }
+};
+
+// Error handling for speech recognition
+recognition.onerror = function(event) {
+    console.error('Speech recognition error occurred:', event.error);
+    isAudioPlaying = false; // Reset flag on recognition error
+};
+
+// Show speaking animation
+function showSpeakingAnimation() {
+    const voiceAgent = document.querySelector('.floating-voice-agent');
+    voiceAgent.classList.add('speaking'); // Add speaking class for animation
+}
+
+// Show listening indicator with animation
+function showListeningIndicator() {
+    const nilaText = document.getElementById('nilaText');
+    nilaText.innerHTML = 'Listening <span class="red-dot"></span>';
+    document.getElementById('stopButton').style.display = 'inline'; // Show stop button
+    showPulseAnimation(); // Add CSS animations
+}
+
+// Show askNILA indicator (default state)
+function showAskNILAIndicator() {
+    const nilaText = document.getElementById('nilaText');
+    nilaText.innerHTML = 'ask NILA';
+    hidePulseAnimation(); // Remove CSS animations
+    const voiceAgent = document.querySelector('.floating-voice-agent');
+    voiceAgent.classList.remove('speaking'); // Remove speaking class
+}
+
+// Show pulse and wave effects
+function showPulseAnimation() {
+    const voiceAgent = document.querySelector('.floating-voice-agent');
+    const pulse = document.createElement('div');
+    pulse.classList.add('pulse');
+    const wave1 = document.createElement('div');
+    wave1.classList.add('wave');
+    const wave2 = document.createElement('div');
+    wave2.classList.add('wave');
+
+    voiceAgent.insertBefore(pulse, voiceAgent.firstChild);
+    voiceAgent.insertBefore(wave1, pulse.nextSibling);
+    voiceAgent.insertBefore(wave2, wave1.nextSibling);
+}
+
+// Remove pulse and wave effects
+function hidePulseAnimation() {
+    const pulse = document.querySelector('.pulse');
+    const waveElements = document.querySelectorAll('.wave');
+
+    if (pulse) pulse.remove();
+    waveElements.forEach(wave => wave.remove());
+}
+
+// Function to stop listening and reset everything
+function stopListening() {
+    recognition.stop(); // Stop speech recognition
+    showAskNILAIndicator(); // Reset text to default
+    document.getElementById('stopButton').style.display = 'none'; // Hide stop button
+    shouldContinueListening = false; // Set flag to false to prevent further listening
+    console.log('Listening has been stopped. Reset to default.');
+}
+
+// Attach stop button event listener
+document.getElementById('stopButton').addEventListener('click', stopListening);
+    </script>
+    <!-- <script src="/assets/config.js"></script> -->
