@@ -1,0 +1,4 @@
+VITE_HEYGEN_API_KEY="replace_with_heygen_key"
+
+
+#rename file from env to .env
